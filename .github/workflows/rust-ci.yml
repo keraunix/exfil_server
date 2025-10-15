@@ -34,7 +34,7 @@ jobs:
       - name: Clippy (deny warnings)
         run: cargo clippy --workspace --all-features -- -D warnings
 
-  build and test:
+  build-and-test:
     needs: lint
 
     strategy:
