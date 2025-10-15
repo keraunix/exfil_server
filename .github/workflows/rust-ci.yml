@@ -1,0 +1,57 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --workspace --all-features -- -D warnings
+
+  build-and-test:
+    needs: lint
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        toolchain: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v5
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ matrix.toolchain }}
+    - uses: Swatinem/rust-cache@v2
+    - name: Build
+      run: cargo build --workspace --all-features --locked --verbose
+    - name: Test
+      run: cargo test --workspace --all-features --locked --no-fail-fast --verbose
