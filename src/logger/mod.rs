@@ -1,16 +1,12 @@
 use anyhow::Context;
 use std::{fs::OpenOptions, sync::OnceLock};
 use tracing_appender::non_blocking;
-use tracing_subscriber::{
-    Registry, EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt,
-};
+use tracing_subscriber::{EnvFilter, Registry, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 static FILE_GUARD: OnceLock<non_blocking::WorkerGuard> = OnceLock::new();
 
 pub fn init_logging(log_file: bool) -> anyhow::Result<()> {
-
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("info"));
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
 
     let stdout_layer = fmt::layer()
         .json()
@@ -39,7 +35,7 @@ pub fn init_logging(log_file: bool) -> anyhow::Result<()> {
                 .with_span_list(false)
                 .with_target(true)
                 .with_level(true)
-                .with_writer(nb)
+                .with_writer(nb),
         )
     } else {
         None

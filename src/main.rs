@@ -1,6 +1,6 @@
 mod config;
-use exfil_server::{logger, server};
 use config::Config;
+use exfil_server::{logger, server};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
