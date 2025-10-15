@@ -7,14 +7,12 @@ use axum::{
     routing::any,
 };
 use std::borrow::Cow;
-use std::env;
 use std::net::SocketAddr;
 
-pub async fn init_server() -> anyhow::Result<()> {
-    let config = build_config()?;
+pub async fn init_server(port: &str) -> anyhow::Result<()> {
     let app = build_app().into_make_service_with_connect_info::<SocketAddr>();
 
-    let addr: SocketAddr = format!("0.0.0.0:{}", config.port)
+    let addr: SocketAddr = format!("0.0.0.0:{}", port)
         .parse()
         .context("invalid bind address")?;
 
@@ -25,18 +23,6 @@ pub async fn init_server() -> anyhow::Result<()> {
     axum::serve(listener, app).await.context("server error")?;
 
     Ok(())
-}
-
-#[derive(Debug, PartialEq, Eq)]
-struct Config {
-    port: String,
-}
-
-fn build_config() -> anyhow::Result<Config> {
-    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-
-    let config = Config { port };
-    Ok(config)
 }
 
 fn build_app() -> Router {
