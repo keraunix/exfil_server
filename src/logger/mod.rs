@@ -50,6 +50,6 @@ pub fn init_logging(log_to_file: bool) -> anyhow::Result<()> {
         .try_init()
         .map_err(|e| anyhow::anyhow!("failed to initialize subscriber: {e}"))?;
 
-    tracing::info!("logging to file: {:?}", log_file);
+    tracing::info!("logging to file: {:?}", log_to_file);
     Ok(())
 }
