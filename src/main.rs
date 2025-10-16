@@ -6,7 +6,7 @@ use exfil_server::{logger, server};
 async fn main() -> anyhow::Result<()> {
     let config = Config::from_env();
     let _ = dotenvy::dotenv();
-    logger::init_logging(config.log_file)?;
+    logger::init_logging(config.log_to_file)?;
     server::init_server(&config.port).await?;
     Ok(())
 }
