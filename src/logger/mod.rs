@@ -17,7 +17,7 @@ pub fn init_logging(log_file: bool) -> anyhow::Result<()> {
         .with_level(true);
 
     let file_layer: Option<_> = if log_file {
-        let path = "app.log";
+        let path = "exfil_server.log";
         let file = OpenOptions::new()
             .create(true)
             .append(true)
