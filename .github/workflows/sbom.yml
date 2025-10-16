@@ -1,0 +1,24 @@
+name: Syft SBOM
+
+on:
+  push:
+    tags: [ "v*" ]
+  pull_request:
+  
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: sbom-source.spdx.jsonn
