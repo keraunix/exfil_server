@@ -108,8 +108,6 @@ mod tests {
     use super::*;
     use axum::http::{HeaderMap, HeaderValue};
 
-    // ---------- Unit tests (pure helpers) ----------
-
     #[test]
     fn headers_to_string_includes_all_values_and_duplicates() {
         let mut h = HeaderMap::new();
