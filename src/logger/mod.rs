@@ -5,7 +5,7 @@ use tracing_subscriber::{EnvFilter, Registry, fmt, layer::SubscriberExt, util::S
 
 static FILE_GUARD: OnceLock<non_blocking::WorkerGuard> = OnceLock::new();
 
-pub fn init_logging(log_file: bool) -> anyhow::Result<()> {
+pub fn init_logging(log_to_file: bool) -> anyhow::Result<()> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
 
     let stdout_layer = fmt::layer()
@@ -16,7 +16,7 @@ pub fn init_logging(log_file: bool) -> anyhow::Result<()> {
         .with_target(true)
         .with_level(true);
 
-    let file_layer: Option<_> = if log_file {
+    let file_layer: Option<_> = if log_to_file {
         let path = "exfil_server.log";
         let file = OpenOptions::new()
             .create(true)

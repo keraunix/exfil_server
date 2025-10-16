@@ -1,14 +1,14 @@
 #[derive(Debug, PartialEq, Eq)]
 pub struct Config {
     pub port: String,
-    pub log_file: bool,
+    pub log_to_file: bool,
 }
 
 impl Config {
     pub fn from_env() -> Self {
         Self {
             port: std::env::var("PORT").unwrap_or_else(|_| "8080".to_string()),
-            log_file: std::env::var("LOG_FILE").is_ok(),
+            log_to_file: std::env::var("LOG_TO_FILE").is_ok(),
         }
     }
 }
