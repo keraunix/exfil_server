@@ -1,0 +1,107 @@
+name: Syft SBOM + Grype vuln scan
+
+on:
+  push:
+    tags: [ "v*" ]
+  pull_request:
+  
+permissions:
+  contents: write
+  actions: read
+  security-events: write
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Generate SBOM (non-tag)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom-source.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate SBOM (tag) & attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom-source.spdx.json
+          artifact-name: sbom-source.spdx.json
+          upload-artifact: true
+          upload-release-assets: true
+
+      - name: Upload SBOM artifact (non-tag)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-source.spdx.json
+          path: sbom-source.spdx.json
+          if-no-files-found: error
+
+  vuln-scan:
+    needs: sbom
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download SBOM artifact (non-tag)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/download-artifact@v4
+        with:
+          name: sbom-source.spdx.json
+          path: .
+
+      - name: Scan SBOM with Anchore (SARIF)
+        id: scan
+        uses: anchore/scan-action@v6
+        with:
+          sbom: sbom-source.spdx.json
+          output-format: sarif
+          cache-db: true
+
+      - name: Upload SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+
+      - name: Download Grype
+        uses: anchore/scan-action/download-grype@v3
+        id: grype
+
+      - name: print table to logs
+        run: |
+          ${{ steps.grype.outputs.cmd }} sbom:sbom-source.spdx.json - o table | tee grype-table.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: grype-table.txt
+          path: grype-table.txt
+
+      # --- Make it downloadable on every run (artifact) ---
+      - name: Upload scan SARIF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vuln-scan.sarif
+          path: ${{ steps.scan.outputs.sarif }}
+          retention-days: 30
+
+      # --- Also attach to the GitHub Release on v* tags ---
+      - name: Attach scan SARIF to Release (tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.scan.outputs.sarif }}
+
+      - name: Scan SBOM (table) for logs
+        uses: anchore/scan-action@v6
+        with:
+          sbom: sbom-source.spdx.json
+          output-format: table
+          fail-build: false
