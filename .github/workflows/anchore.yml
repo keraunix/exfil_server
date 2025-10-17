@@ -38,35 +38,15 @@ jobs:
           upload-release-assets: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
 
   vuln-scan:
-    needs: sbom
     runs-on: ubuntu-latest
     steps:
-      - name: Download SBOM artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sbom-artifact
-          path: .
 
-      - name: Scan SBOM with grype
+      - name: Scan with grype
         id: scan
         uses: anchore/scan-action@v6
         with:
-          sbom: sbom-source.spdx.json
+          path: .
           # Keep it light; include SARIF (for Code Scanning) and CycloneDX (ecosystem tooling)
           output-format: table
           fail-build: false
           cache-db: true
-
-      - name: Upload SARIF to Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
-
-      - name: Upload scan results as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: vuln-scan-results
-          path: |
-            ${{ steps.scan.outputs.sarif }}
-            ${{ steps.scan.outputs.cyclonedx }}
-
