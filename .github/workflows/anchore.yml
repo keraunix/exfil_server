@@ -53,7 +53,7 @@ jobs:
         with:
           sbom: sbom-source.spdx.json
           # Keep it light; include SARIF (for Code Scanning) and CycloneDX (ecosystem tooling)
-          output-format: sarif,cyclonedx
+          output-format: table
           fail-build: false
           cache-db: true
 
