@@ -17,8 +17,31 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: anchore/sbom-action@v0
+      - name: Generate SBOM (non-tag)
+        if: "!startsWith(github.ref, `refs/tags/v')"
+        uses: anchore/sbom-action@v0
         with:
           path: .
           format: spdx-json
-          artifact-name: sbom-source.spdx.jsonn
+          output-file: sbom-source.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate SBOM (tag) & attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom-source.spdx.json
+          artifact-name: sbom-source.spdx.json
+          upload-artifact: true
+          upload-release-asset: true
+
+      - name: Upload SBOM artifact (non-tag)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-source.spdx.json
+          path: sbom-source.spdx.json
+          if-no-files-found: error
