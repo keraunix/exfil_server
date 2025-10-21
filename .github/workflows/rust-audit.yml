@@ -1,0 +1,27 @@
+# .github/workflows/rust-audit.yml
+name: Rust Dependency Audit
+on:
+  pull_request:
+    paths: ['**/Cargo.lock']
+  push:
+    branches: [main]
+    paths: ['**/Cargo.lock']
+  schedule:
+    - cron: '0 0 * * *'   # daily at 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write      # needed for issue creation
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions-rust-lang/audit@v1
+        with:
+          createIssues: true
+          denyWarnings: false    # don't fail on purely informational warnings
+
