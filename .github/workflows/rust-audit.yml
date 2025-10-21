@@ -1,4 +1,3 @@
-# .github/workflows/rust-audit.yml
 name: Rust Dependency Audit
 on:
   pull_request:
