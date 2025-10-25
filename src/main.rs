@@ -1,12 +1,12 @@
-mod config;
-use config::Config;
-use exfil_server::{logger, server};
+use exfil_server::{config, logger, server};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let config = Config::from_env();
     let _ = dotenvy::dotenv();
-    logger::init_logging(config.log_to_file)?;
+    let config = config::Config::from_env();
+    let _ = dotenvy::dotenv();
+    logger::init_logging(&config)?;
+    tracing::debug!("config: {:?}", config);
     server::init_server(&config.port).await?;
     Ok(())
 }
