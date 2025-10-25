@@ -7,7 +7,7 @@ use tracing_subscriber::{EnvFilter, Registry, fmt, layer::SubscriberExt, util::S
 static FILE_GUARD: OnceLock<non_blocking::WorkerGuard> = OnceLock::new();
 
 pub fn init_logging(config: &Config) -> anyhow::Result<()> {
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    let env_filter = EnvFilter::new(&config.log_level);
 
     let stdout_layer = fmt::layer()
         .json()
@@ -50,6 +50,6 @@ pub fn init_logging(config: &Config) -> anyhow::Result<()> {
         .try_init()
         .map_err(|e| anyhow::anyhow!("failed to initialize subscriber: {e}"))?;
 
-    tracing::info!("logging to file: {:?}", config.log_to_file);
+    tracing::info!("Config: {:?}", config);
     Ok(())
 }
