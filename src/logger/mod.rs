@@ -1,3 +1,4 @@
+use crate::config::Config;
 use anyhow::Context;
 use std::{fs::OpenOptions, sync::OnceLock};
 use tracing_appender::non_blocking;
@@ -5,7 +6,7 @@ use tracing_subscriber::{EnvFilter, Registry, fmt, layer::SubscriberExt, util::S
 
 static FILE_GUARD: OnceLock<non_blocking::WorkerGuard> = OnceLock::new();
 
-pub fn init_logging(log_to_file: bool) -> anyhow::Result<()> {
+pub fn init_logging(config: &Config) -> anyhow::Result<()> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
 
     let stdout_layer = fmt::layer()
@@ -16,13 +17,12 @@ pub fn init_logging(log_to_file: bool) -> anyhow::Result<()> {
         .with_target(true)
         .with_level(true);
 
-    let file_layer: Option<_> = if log_to_file {
-        let path = "exfil_server.log";
+    let file_layer: Option<_> = if config.log_to_file {
         let file = OpenOptions::new()
             .create(true)
             .append(true)
-            .open(path)
-            .with_context(|| format!("failed to open {}", path))?;
+            .open(&config.log_path)
+            .with_context(|| format!("failed to open {}", &config.log_path))?;
 
         let (nb, guard) = non_blocking(file);
         let _ = FILE_GUARD.set(guard);
@@ -50,6 +50,6 @@ pub fn init_logging(log_to_file: bool) -> anyhow::Result<()> {
         .try_init()
         .map_err(|e| anyhow::anyhow!("failed to initialize subscriber: {e}"))?;
 
-    tracing::info!("logging to file: {:?}", log_to_file);
+    tracing::info!("logging to file: {:?}", config.log_to_file);
     Ok(())
 }
